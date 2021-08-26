@@ -1,5 +1,8 @@
 import React, {useEffect, useState} from 'react'
-import axios from 'axios'
+import PersonForm from './Components/PersonForm'
+import Filter from './Components/Filter'
+import Person from './Components/Person'
+import phoneService from './services/phonebook'
 
 const App=() => {
 
@@ -9,61 +12,20 @@ const App=() => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
   const [search, setSearch ] = useState(false)
+  const [deleteBool, setDeleteBool] = useState(false)
   const [filterArray, setFilterArray] = useState(persons.map(person=>person.name))
 
 useEffect(() => {
-  console.log('effect')
-  axios
-    .get('http://localhost:3001/persons')
-    .then(response=>{
+  console.log('effect 1')
+  phoneService
+    .getAll()
+    .then(InitialPersons=>{
       console.log('promised fulfilled')
-      setPersons(response.data)
+      setPersons(InitialPersons)
     })
 }, [])
 
   console.log('render', persons.length, 'persons')
-
-  const Contacts = ({person}) => {
-
-    return(
-      <div>{person.name} {person.number}</div>
-    )
-  }
-
-  const Person = ({persons}) => {
-    if(search){
-    persons = persons.filter(per=>filterArray.includes(per.name))
-    }
-    return (
-      persons.map(person=><Contacts key={person.name} person={person}/>)
-    )
-  }
-
-  const PersonForm = () => {
-
-    return(
-      <form onSubmit={insertName}>
-      <div>
-        name:<input value={newName} onChange={handleNameChange}/>
-      </div>
-      <div>
-        number: <input value = {newNumber} onChange={handleNumberChange}/>
-      </div>
-      <div>
-      <button type='submit'>add</button>
-      </div>
-    </form>
-    )
-  }
-
-  const Filter = () => {
-
-    return(
-      <p>
-      filter shown with<input value={newFilter} onChange={handleFilterChange}/>
-    </p>
-    )
-  }
 
   // event handlers 
 
@@ -75,11 +37,14 @@ useEffect(() => {
       name: newName,
       number: newNumber
     }
-    setPersons(persons.concat(newPerson))
-    setFilterArray(persons.map(person=>person.name))
-    console.log('check new', persons)
-    setNewName('')
-    setNewNumber('')
+    
+    phoneService
+    .create(newPerson)
+    .then(returnedPerson=> {
+      setPersons(persons.concat(returnedPerson))
+      setNewName('')
+      setNewNumber('')
+    })
     }
     else{
       alert(`${newName} is already added to phonebook`)
@@ -87,13 +52,25 @@ useEffect(() => {
   }
 
   const handleNameChange= (event) => {
-    //console.log(event.target.value)
+    console.log(event.target.value)
     setNewName(event.target.value)
   }
   const handleNumberChange = (event) =>{
     //console.log(event.target.value)
     setNewNumber(event.target.value)
 
+  }
+
+  const deleteHandler = (event) => {
+    const delName = persons.find(p => p.id == event.target.id)
+    if(window.confirm(`Delete ${delName.name} ?`))
+    {
+      phoneService
+       .deletePer(delName.id)
+       .then(
+        setPersons(persons.filter(p=>p.id != delName.id))
+      )
+    }
   }
 
   const handleFilterChange = (event) =>{
@@ -116,28 +93,26 @@ useEffect(() => {
     <div>
       <h2>Phonebook</h2>
 
-      <p>
-      filter shown with<input value={newFilter} onChange={handleFilterChange}/>
-    </p>
+      <Filter newFilter={newFilter}
+              handleFilterChange= {handleFilterChange}
+              />
 
       <h3>Add a new</h3>
 
-      <form onSubmit={insertName}>
-      <div>
-        name:<input value={newName} onChange={handleNameChange}/>
-      </div>
-      <div>
-        number: <input value = {newNumber} onChange={handleNumberChange}/>
-      </div>
-      <div>
-      <button type='submit'>add</button>
-      </div>
-    </form>
+      <PersonForm insertName={insertName} 
+                  newName={newName}
+                  handleNumberChange={handleNumberChange}
+                  newNumber={newNumber}
+                  handleNameChange={handleNameChange}
+                  />
 
       <h3>Numbers</h3>
       
       <div>
-        <Person persons={persons}/>
+        <Person persons={persons}
+                search={search}
+                filterArray={filterArray}
+                deleteHandler={deleteHandler}/>
       </div>
       <div><strong>debug: {newName} {newNumber}</strong></div>
     </div>
