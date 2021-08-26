@@ -4,13 +4,13 @@
       "id": 1,
       "content": "HTML is easy",
       "date": "2019-05-30T17:30:31.098Z",
-      "important": true
+      "important": false
     },
     {
       "id": 2,
       "content": "Browser can execute only JavaScript",
       "date": "2019-05-30T18:39:34.091Z",
-      "important": true
+      "important": false
     },
     {
       "id": 3,
@@ -29,6 +29,24 @@
       "date": "2021-08-25T21:25:08.571Z",
       "important": true,
       "id": 5
+    },
+    {
+      "content": "Another Post",
+      "date": "2021-08-25T23:33:06.224Z",
+      "important": true,
+      "id": 6
+    },
+    {
+      "content": "dd",
+      "date": "2021-08-26T00:09:27.393Z",
+      "important": true,
+      "id": 7
+    },
+    {
+      "content": "sss",
+      "date": "2021-08-26T00:09:34.412Z",
+      "important": true,
+      "id": 8
     }
   ]
 }
