@@ -46,8 +46,23 @@ useEffect(() => {
       setNewNumber('')
     })
     }
-    else{
-      alert(`${newName} is already added to phonebook`)
+    else if(window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)){
+      const newPerson= {
+        name: newName,
+        number: newNumber,
+        id: (persons.find(p => p.name === newName).id)
+      }
+      console.log(newPerson)
+     phoneService
+      .update(newPerson.id,newPerson)
+      .then(returnedData =>{
+        //const adPersons = persons.filter(p=>p.id!==returnedData.id)
+        //setPersons(adPersons.concat(returnedData))
+        setNewName('')
+        setNewNumber('')
+        }
+        
+      )
     }
   }
 
