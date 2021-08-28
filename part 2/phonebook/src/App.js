@@ -3,6 +3,7 @@ import PersonForm from './Components/PersonForm'
 import Filter from './Components/Filter'
 import Person from './Components/Person'
 import phoneService from './services/phonebook'
+import Notification from './Components/Notification'
 
 const App=() => {
 
@@ -12,9 +13,9 @@ const App=() => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
   const [search, setSearch ] = useState(false)
-  const [deleteBool, setDeleteBool] = useState(false)
   const [filterArray, setFilterArray] = useState(persons.map(person=>person.name))
-
+  const [errorMessage, setErrorMessage] = useState('')
+  
 useEffect(() => {
   console.log('effect 1')
   phoneService
@@ -56,8 +57,8 @@ useEffect(() => {
      phoneService
       .update(newPerson.id,newPerson)
       .then(returnedData =>{
-        //const adPersons = persons.filter(p=>p.id!==returnedData.id)
-        //setPersons(adPersons.concat(returnedData))
+        const adPersons = persons.filter(p=>p.id!==returnedData.id)
+        setPersons(adPersons.concat(returnedData))
         setNewName('')
         setNewNumber('')
         }

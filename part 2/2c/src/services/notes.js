@@ -1,6 +1,6 @@
 import axios from 'axios'
-//const baseUrl = 'http://localhost:3001/notes'
-const baseUrl = 'http://192.168.1.110:3001/notes/'
+const baseUrl = 'http://localhost:3001/notes'
+//const baseUrl = 'http://192.168.1.110:3001/notes/'
 const getAll = () => {
     const request = axios.get(baseUrl)
     const nonExisting = {
