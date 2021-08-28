@@ -14,19 +14,19 @@ const App=() => {
   const [newFilter, setNewFilter] = useState('')
   const [search, setSearch ] = useState(false)
   const [filterArray, setFilterArray] = useState(persons.map(person=>person.name))
-  const [errorMessage, setErrorMessage] = useState('')
-  
+  const [errorMessage, setErrorMessage] = useState(null)
+
 useEffect(() => {
-  console.log('effect 1')
+  //console.log('effect 1')
   phoneService
     .getAll()
     .then(InitialPersons=>{
-      console.log('promised fulfilled')
+      //console.log('promised fulfilled')
       setPersons(InitialPersons)
     })
 }, [])
 
-  console.log('render', persons.length, 'persons')
+  //console.log('render', persons.length, 'persons')
 
   // event handlers 
 
@@ -43,6 +43,10 @@ useEffect(() => {
     .create(newPerson)
     .then(returnedPerson=> {
       setPersons(persons.concat(returnedPerson))
+      setErrorMessage(`Added ${returnedPerson.name}`)
+        setTimeout(() =>{
+          setErrorMessage(null)
+        }, 3000)
       setNewName('')
       setNewNumber('')
     })
@@ -59,16 +63,27 @@ useEffect(() => {
       .then(returnedData =>{
         const adPersons = persons.filter(p=>p.id!==returnedData.id)
         setPersons(adPersons.concat(returnedData))
+        setErrorMessage(`Updated ${returnedData.name}`)
+        setTimeout(() =>{
+          setErrorMessage(null)
+        }, 3000)
         setNewName('')
         setNewNumber('')
-        }
-        
-      )
+        })
+        .catch(error => {
+          console.log('fail')
+          setErrorMessage(`[ERROR] Information of ${newPerson.name} has already been removed from server`)
+          setTimeout(() =>{
+            setErrorMessage(null)
+          }, 3000)
+        setNewName('')
+        setNewNumber('')
+        })
     }
   }
 
   const handleNameChange= (event) => {
-    console.log(event.target.value)
+    //console.log(event.target.value)
     setNewName(event.target.value)
   }
   const handleNumberChange = (event) =>{
@@ -102,13 +117,13 @@ useEffect(() => {
     setSearch(false)
     setFilterArray(persons.map(person=>person.name))
   }
-  console.log('State of filter',filterArray)
+  //console.log('State of filter',filterArray)
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
-
+      <Notification message={errorMessage}/>
       <Filter newFilter={newFilter}
               handleFilterChange= {handleFilterChange}
               />
