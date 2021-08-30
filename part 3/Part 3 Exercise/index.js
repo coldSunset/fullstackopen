@@ -1,11 +1,22 @@
 const {request, response} = require('express')
 const express = require('express')
+//const { token } = require('morgan')
 const app = express() 
 const morgan = require('morgan')
 
 app.use(express.json())
 
 
+app.use(morgan((tokens,request,response)=>{
+    return[
+        tokens.method(request, response),
+        tokens.url(request, response),
+        tokens.status(request, response),
+        tokens.res(request, response, 'content-length'), '-',
+        tokens['response-time'](request, response), 'ms',
+        JSON.stringify(request.body)]
+        .join(' ')
+}))
 
 let persons = [
     { 
@@ -30,14 +41,13 @@ let persons = [
     }
 ]
 
-const requestLogger = (request, response, next) => {
-    console.log('Method:', request.method)
-    console.log('Path:  ', request.path)
-    console.log('Body:  ', request.body)
+/* const requestLogger = (request, response, next) => {
+    console.log('name:', response.name)
+    console.log('number:  ', response.number)
     console.log('---')
     next()
-}
-app.use(morgan('tiny'))
+} */
+
 
 app.get('/api/persons', (request,response) =>{
     response.json(persons)
@@ -93,6 +103,7 @@ app.post('/api/persons', (request,response) => {
     
     persons = persons.concat(person)
     response.json(person)
+
 })
 
 const PORT = 3001 
