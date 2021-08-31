@@ -32,8 +32,6 @@ const App = () => {
   },[])
 
   const toggleImportanceOf = id => {
-    const url = `http://localhost:3001/notes/${id}`
-    //const url = `http://192.168.1.110:3001/notes/${id}`
     const note = notes.find(n=> n.id === id)  
     const changedNote = {...note, important: !note.important}
 
@@ -41,8 +39,10 @@ const App = () => {
       .update(id, changedNote)
       .then(returnedNote => {
       setNotes(notes.map(note => note.id !== id ? note : returnedNote))
+      console.log("the returned note",returnedNote)
     })
     .catch(error=> {
+      console.log('error message',error)
       setErrorMesssage(
         `Note '${note.content}' was already deleted from server`
       )
