@@ -13,7 +13,7 @@ blogsRouter.get('/', async (request, response) => {
 
   
 blogsRouter.post('/', async (request, response) => {
-    let blog = request.body
+    let body = request.body
     //const token = getTokenFrom(request)
     const token = request.token
     const decodedToken = jwt.verify(token, process.env.SECRET)
@@ -23,30 +23,50 @@ blogsRouter.post('/', async (request, response) => {
 
     const user = await User.findById(decodedToken.id)
 
-    console.log(user)
-    blog = {...blog, user: blog.userId}
-    console.log(blog)
+    //console.log(user)
+    body = {...body, user: body.userId}
+   // console.log(blog)
 
-    const bog = new Blog({
-      title: blog.title,
-      url: blog.url,
-      likes: blog.likes,
-      author: blog.author,
-      user: user.id
+    const blog = new Blog({
+      title: body.title,
+      url: body.url,
+      likes: body.likes,
+      author: body.author,
+      user: user._id
     })
 
-    const savedBlog = await bog.save()
-
+    const savedBlog = await blog.save()
+    console.log('savedBlog._id', savedBlog._id)
     response.json(savedBlog.toJSON())
     user.blogs = user.blogs.concat(savedBlog._id) 
     await user.save()
+    console.log('this user should have two blog ids',user)
     response.json(savedBlog.toJSON())
 
   })
 
 blogsRouter.delete('/:id', async (request, response) => {
-  await Blog.findByIdAndRemove(request.params.id)
+  const body = request.body
+  
+  const token = request.token
+    const decodedToken = jwt.verify(token, process.env.SECRET)
+    if(!token || !decodedToken.id) {
+      return response.status(401).json({ error: 'token missing or invalid'})
+    }
+
+    const user = await User.findById(decodedToken.id)
+    console.log('user blogs:', user.blogs)
+    const userBlogStr = user.blogs.toString()
+    console.log('user blogs to string', userBlogStr)
+    console.log('request.params.id', request.params.id)
+    if( userBlogStr === request.params.id ) {
+      await Blog.findByIdAndRemove(request.params.id)
       response.status(204).end()
+    }
+     else {
+       return response.status(401).json({ error: "invalid user token" })
+     }
+    
 })
 
 blogsRouter.put('/:id', (request, response, next) => {

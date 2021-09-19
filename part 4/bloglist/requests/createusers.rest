@@ -92,8 +92,13 @@ Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkZpc
 {
         "username": "Firefly",
         "password": "Serenity",
-          "title": "The Civil War2",
+          "title": "The Civil 52",
           "author": "Pope",
           "url": "outlander.com",
           "likes": 34
       }
+
+### 'Firefly' delete blog
+delete http://localhost:3003/api/blogs/6145021ba70c238d9a183ca0
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkZpcmVmbHkiLCJpZCI6IjYxNDQ1OWQ1NjY4ODZhMjY2MjhmNDU5YiIsImlhdCI6MTYzMjAxMTE2MywiZXhwIjoxNjMyMDE0NzYzfQ.PaCN-n8tpEYzd6fFx7vxOxiZJEXkjDtKrJK9PwQ8Gbc

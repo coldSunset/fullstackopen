@@ -232,15 +232,16 @@ describe('when there is initially one user at db', () => {
   describe('creating notes for logged in only users', () => {
       beforeEach(async () => {
         await User.deleteMany({})
-    
+        await Blog.deleteMany({})
+        await Blog.insertMany(helper.initialBlogs)
+
         const passwordHash = await bcrypt.hash('sekret', 10)
         const user = new User({ username: 'root', passwordHash })
     
         await user.save()
       })
     test('new note will be created if user is logged in', async () => {
-      const users = await helper.usersInDb()
-      console.log(users)
+      const blogsStart = await helper.blogsInDb()
 
       const userBlog = {
         username: 'root',
@@ -253,18 +254,230 @@ describe('when there is initially one user at db', () => {
       
       }
 
-      const result  = await api
+      const result = await api
         .post('/api/login')
         .send(userBlog)
         .expect(200)
       const token = result.body.token
-      console.log('token', token)
-      const result2 = await api
+
+      await api
       .post('/api/blogs')
+      .set('authorization',`bearer ${token.toString()}`)
       .send(userBlog)
       .expect(200)
-    console.log('result.body',result2.body)
 
+     const blogsEnd = await helper.blogsInDb() 
+      expect(blogsEnd).toHaveLength(blogsStart.length +1)
+    })
+
+  })
+
+  describe('Deleting blogs', () => {
+
+    beforeEach(async () => {
+      await User.deleteMany({})
+  
+      const passwordHash = await bcrypt.hash('sekret', 10)
+      const user = new User({ username: 'root', passwordHash })
+  
+      await user.save()
+
+    })
+
+    test('Blog will only be deleted if correct user is logged in and user id match', async () => {
+      const blogsStart = await helper.blogsInDb()
+
+    const userBlog = {
+      username: 'root',
+      password: 'sekret',
+      
+        title: "CodeWhiz",
+        author: "Coder",
+        url: "thecode.com",
+        likes: 34, 
+    
+    }
+
+    const result = await api
+      .post('/api/login')
+      .send(userBlog)
+      .expect(200)
+
+      const token = result.body.token
+
+      const resp = await api
+        .post('/api/blogs')
+        .set('authorization',`bearer ${token.toString()}`)
+        .send(userBlog)
+        .expect(200)
+      console.log(resp.body)
+      const newBlogId = resp.body.id
+      const blogsAfterAdd = await helper.blogsInDb()
+
+      expect(blogsAfterAdd).toHaveLength(blogsStart.length +1)
+      console.log('newBlogId', newBlogId)
+
+      await api
+        .delete(`/api/blogs/${newBlogId}`)
+        .set('authorization',`bearer ${token.toString()}`)
+        .expect(204)
+        //${resp.body.id.toString()}
+
+      const blogsAfterDelete = await helper.blogsInDb()
+      expect(blogsAfterDelete).toHaveLength(blogsAfterAdd.length -1)
+
+      const blogsList = blogsAfterAdd.find(b => b.id === newBlogId)
+      expect(blogsAfterDelete).not.toContain(blogsList)
+    })
+
+    test('Blog will not be deleted if incorrect tries deleting it', async () => {
+      const blogs = await helper.blogsInDb()
+
+    const userBlog = {
+      username: 'root',
+      password: 'sekret',
+      
+        title: "CodeWhiz",
+        author: "Coder",
+        url: "thecode.com",
+        likes: 34, 
+    
+    }
+
+
+    const result = await api
+      .post('/api/login')
+      .send(userBlog)
+      .expect(200)
+
+
+      const token = result.body.token
+
+      const resp = await api
+      .post('/api/blogs')
+      .set('authorization',`bearer ${token.toString()}`)
+      .send(userBlog)
+      .expect(200)
+      console.log(resp.body)
+
+      const blogsListMid = await helper.blogsInDb()
+      expect(blogsListMid).toHaveLength(blogs.length +1)
+
+      const passwordHash = await bcrypt.hash('secret', 10)
+      const user2 = new User({ username: 'root2', passwordHash })
+  
+      await user2.save()
+
+      const user2Log = {
+        username: 'root2', password: 'secret'
+      }
+
+     const userTwoResp = await api
+      .post('/api/login')
+      .send(user2Log)
+      .expect(200)
+
+      const userTwoToken = userTwoResp.body.token
+
+      const reply = await api
+        .delete(`/api/blogs/${resp.body.id}`)
+        .set('authorization',`bearer ${userTwoToken.toString()}`)
+        .expect(401)
+        console.log(reply.body)
+        //${resp.body.id.toString()}
+      
+        const blogListFinal = await helper.blogsInDb()
+        expect(blogsListMid).toHaveLength(blogListFinal.length)
+    })
+
+  })
+
+  describe('User has more than one blog', () => {
+
+    beforeEach(async () => {
+      await User.deleteMany({})
+  
+      const passwordHash = await bcrypt.hash('sekret', 10)
+      const user = new User({ username: 'root', passwordHash })
+  
+      await user.save()
+
+      const userBlog = {
+        username: 'root',
+        password: 'sekret',
+        
+          title: "CodeWhiz",
+          author: "Coder",
+          url: "thecode.com",
+          likes: 34, 
+      
+      }
+      const userBlog2 = {
+        username: 'root',
+        password: 'sekret',
+        
+          title: "CodeWhizV2",
+          author: "Coder2",
+          url: "thecode2.com",
+          likes: 37, 
+      
+      }
+  
+  
+      const result = await api
+        .post('/api/login')
+        .send(userBlog)
+        .expect(200)
+  
+  
+        const token = result.body.token
+  
+        await api
+        .post('/api/blogs')
+        .set('authorization',`bearer ${token.toString()}`)
+        .send(userBlog)
+        .expect(200)
+
+        await api
+        .post('/api/blogs')
+        .set('authorization',`bearer ${token.toString()}`)
+        .send(userBlog2)
+        .expect(200)
+    })
+
+    test('Delete blog from user who has multiple blogs', async () => {
+          const usersStart = await helper.usersInDb() 
+          const blogsStart = await helper.blogsInDb() 
+
+          const userTest = {
+            username: 'root',
+            password: 'sekret',
+          }
+
+          //User must first log in to obtain token
+          const result = await api
+            .post('/api/login')
+            .send(userTest)
+            .expect(200)
+  
+          const token = result.body.token
+          const userName = result.body.username
+          console.log('result.body', result.body)
+          const thisUser = usersStart.find( u => u.username === userName)
+          console.log('thisUser', thisUser)
+          const deleteBlogId = blogsStart.find( b=> b.id.toString() === )
+          // const newBlogId = resp.body.id
+          // const blogsAfterAdd = await helper.blogsInDb()
+
+          // expect(blogsAfterAdd).toHaveLength(blogsStart.length +1)
+          // console.log('newBlogId', newBlogId)
+
+          // await api
+          //   .delete(`/api/blogs/${newBlogId}`)
+          //   .set('authorization',`bearer ${token.toString()}`)
+          //   .expect(204)
+                console.log('usersStart', usersStart)
+                console.log('blogsStart', blogsStart)
     })
   })
 

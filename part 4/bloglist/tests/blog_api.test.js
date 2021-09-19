@@ -113,7 +113,7 @@ describe('Deleting Data', () => {
 
     test('Deleting a item should reduce the number of blogs', async () => {
         const blogListStart = await helper.blogsInDb()
-        console.log(blogListStart)
+        //console.log(blogListStart)
         del_id = blogListStart[0].id
         await api
             .delete(`/api/blogs/${del_id}`)
@@ -123,7 +123,7 @@ describe('Deleting Data', () => {
         expect(blogListEnd).toHaveLength(blogListStart.length -1)
 
         const contents = blogListStart.find(b => b.id === del_id)
-        console.log(contents)
+        //console.log(contents)
         expect(contents).not.toContain(blogListStart[0])
     })
 })
@@ -137,7 +137,7 @@ describe('modify a blog', () => {
     test('change likes on a blog', async () => {
         const blogListStart = await helper.blogsInDb()
         const modifyBlog = blogListStart[0] 
-        console.log(modifyBlog)
+        //console.log(modifyBlog)
         modifyBlog.likes = 55
         await api
             .put(`/api/blogs/${modifyBlog.id}`)

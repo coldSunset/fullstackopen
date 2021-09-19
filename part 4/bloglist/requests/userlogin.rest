@@ -1,0 +1,34 @@
+###
+post http://localhost:3003/api/login
+Content-Type: application/json
+
+{
+    "username": "theOne",
+    "name" : "Neo",
+    "password": "Simulca"
+}
+
+###
+post http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRoZU9uZSIsImlkIjoiNjE0NDU5YjM2Njg4NmEyNjYyOGY0NTk3IiwiaWF0IjoxNjMyMDExNzE4LCJleHAiOjE2MzIwMTUzMTh9.P9SitdDysIM3nSGatKcqIlXw88e8_8JRFhQQTYfxTPs
+
+{
+        "username": "theOne",
+        "name" : "Neo",
+        "password": "Simulca",
+          "title": "Neo's new Blog",
+          "author": "It will be deleted",
+          "url": "outlander.com",
+          "likes": 88
+      }
+
+### 'Neo' delete blog
+delete http://localhost:3003/api/blogs/614685df29fcbb15002f2267
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRoZU9uZSIsImlkIjoiNjE0NDU5YjM2Njg4NmEyNjYyOGY0NTk3IiwiaWF0IjoxNjMyMDExODA1LCJleHAiOjE2MzIwMTU0MDV9.DPiJARsq5bXapXASppCYaLhelsuUSQQWfy3S92xTSbw
+
+### 'Neo' delete someone elses blog
+delete http://localhost:3003/api/blogs/6145021ba70c238d9a183ca0
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRoZU9uZSIsImlkIjoiNjE0NDU5YjM2Njg4NmEyNjYyOGY0NTk3IiwiaWF0IjoxNjMyMDExODA1LCJleHAiOjE2MzIwMTU0MDV9.DPiJARsq5bXapXASppCYaLhelsuUSQQWfy3S92xTSbw
