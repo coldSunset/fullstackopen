@@ -392,11 +392,77 @@ describe('when there is initially one user at db', () => {
 
   })
 
+ /* describe('add many blogs to same user', () => {
+    beforeEach(async () => {
+      await User.deleteMany({})
+      await Blog.deleteMany({})
+
+      const passwordHash = await bcrypt.hash('sekret', 10)
+      const user = new User({ username: 'root', passwordHash })
+  
+      await user.save()
+    })
+
+     test('user should hold many blogs', async () => {
+
+      const blogsStart  = await helper.blogsInDb()
+
+      const userBlog = {
+        username: 'root',
+        password: 'sekret',
+        
+          title: "BLOG 1",
+          author: "Coder",
+          url: "thecode.com",
+          likes: 34, 
+      
+      }
+
+      const result = await api
+        .post('/api/login')
+        .send(userBlog)
+        .expect(200)
+        
+      const token = result.body.token
+
+        await api
+        .post('/api/blogs')
+        .set('authorization',`bearer ${token.toString()}`)
+        .send(userBlog)
+        .expect(200)
+
+        const numBlogsOneAdd = helper.blogsInDb()
+        console.log('numBlogsOneAdd', numBlogsOneAdd)
+        expect(blogsStart).toHaveLength(numBlogsOneAdd.length + 1)
+
+        const userBlog2 = {
+          username: 'root',
+          password: 'sekret',
+          
+            title: "BLOG 2",
+            author: "Coder2",
+            url: "thecode2.com",
+            likes: 37, 
+        
+        }
+
+        // await api
+        // .post('/api/blogs')
+        // .set('authorization',`bearer ${token.toString()}`)
+        // .send(userBlog2)
+        // .expect(200)
+
+      //   const numBlogsTwoAdd = helper.blogsInDb()
+      //   expect(numBlogsTwoAdd).toHaveLength(blogsStart.length + 2)
+    }) 
+  }) */
+
   describe('User has more than one blog', () => {
 
     beforeEach(async () => {
       await User.deleteMany({})
-  
+      await Blog.deleteMany({})
+     
       const passwordHash = await bcrypt.hash('sekret', 10)
       const user = new User({ username: 'root', passwordHash })
   
@@ -406,7 +472,7 @@ describe('when there is initially one user at db', () => {
         username: 'root',
         password: 'sekret',
         
-          title: "CodeWhiz",
+          title: "BLOG 1",
           author: "Coder",
           url: "thecode.com",
           likes: 34, 
@@ -416,7 +482,7 @@ describe('when there is initially one user at db', () => {
         username: 'root',
         password: 'sekret',
         
-          title: "CodeWhizV2",
+          title: "BLOG 2",
           author: "Coder2",
           url: "thecode2.com",
           likes: 37, 
@@ -462,22 +528,24 @@ describe('when there is initially one user at db', () => {
   
           const token = result.body.token
           const userName = result.body.username
-          console.log('result.body', result.body)
+         // console.log('result.body', result.body)
           const thisUser = usersStart.find( u => u.username === userName)
           console.log('thisUser', thisUser)
-          const deleteBlogId = blogsStart.find( b=> b.id.toString() === )
-          // const newBlogId = resp.body.id
-          // const blogsAfterAdd = await helper.blogsInDb()
+          const newBlogId = thisUser.blogs[0].toString()
+          console.log(newBlogId)
+         // const blogsAfterAdd = await helper.blogsInDb()
 
-          // expect(blogsAfterAdd).toHaveLength(blogsStart.length +1)
-          // console.log('newBlogId', newBlogId)
+         // expect(blogsAfterAdd).toHaveLength(blogsStart.length +1)
 
-          // await api
-          //   .delete(`/api/blogs/${newBlogId}`)
-          //   .set('authorization',`bearer ${token.toString()}`)
-          //   .expect(204)
-                console.log('usersStart', usersStart)
-                console.log('blogsStart', blogsStart)
+              await api
+                .delete(`/api/blogs/${newBlogId}`)
+                .set('authorization',`bearer ${token.toString()}`)
+                .expect(204)
+          const blogsFinal = await helper.blogsInDb()
+          expect(blogsFinal).toHaveLength(blogsStart.length -1)
+          const finalBlogsListIDs = blogsFinal.map(b => b.id)
+          console.log('finalBlogsListIDs', finalBlogsListIDs)
+          expect(blogsFinal).not.toContain(blogsStart.find(b => b.id === finalBlogsListIDs))
     })
   })
 

@@ -13,53 +13,34 @@ blogsRouter.get('/', async (request, response) => {
 
   
 blogsRouter.post('/', async (request, response) => {
-    let body = request.body
-    //const token = getTokenFrom(request)
-    const token = request.token
-    const decodedToken = jwt.verify(token, process.env.SECRET)
-    if(!token || !decodedToken.id) {
-      return response.status(401).json({ error: 'token missing or invalid'})
-    }
-
-    const user = await User.findById(decodedToken.id)
-
-    //console.log(user)
-    body = {...body, user: body.userId}
-   // console.log(blog)
+    //console.log('PRINT TOKEN:', request.token)
+    //console.log('user', request.body.user)
 
     const blog = new Blog({
-      title: body.title,
-      url: body.url,
-      likes: body.likes,
-      author: body.author,
-      user: user._id
+      title: request.body.title,
+      url: request.body.url,
+      likes: request.body.likes,
+      author: request.body.author,
+      user: request.body.user._id
     })
 
+    console.log('blog', blog)
     const savedBlog = await blog.save()
-    console.log('savedBlog._id', savedBlog._id)
-    response.json(savedBlog.toJSON())
-    user.blogs = user.blogs.concat(savedBlog._id) 
+    //logger.info(`added ${blog.title} to the blog list`)
+    request.body.user.blogs = request.body.user.blogs.concat(savedBlog._id) 
+    const user = request.body.user
     await user.save()
-    console.log('this user should have two blog ids',user)
+    //logger.info(`blog linked to user ${user.username}`)
     response.json(savedBlog.toJSON())
 
   })
 
 blogsRouter.delete('/:id', async (request, response) => {
-  const body = request.body
-  
-  const token = request.token
-    const decodedToken = jwt.verify(token, process.env.SECRET)
-    if(!token || !decodedToken.id) {
-      return response.status(401).json({ error: 'token missing or invalid'})
-    }
 
-    const user = await User.findById(decodedToken.id)
-    console.log('user blogs:', user.blogs)
-    const userBlogStr = user.blogs.toString()
+    const userBlogStr = request.body.user.blogs.toString()
     console.log('user blogs to string', userBlogStr)
     console.log('request.params.id', request.params.id)
-    if( userBlogStr === request.params.id ) {
+    if( userBlogStr.includes( request.params.id) ) {
       await Blog.findByIdAndRemove(request.params.id)
       response.status(204).end()
     }
