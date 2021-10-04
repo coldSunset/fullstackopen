@@ -3,27 +3,23 @@ import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from './components/Notification'
+import LoginForm from './components/LoginForm'
+import BlogForm from './components/BlogsForm'
+import Togglable from './components/Togglable'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState('') 
-  const [password, setPassword] = useState('') 
   const [errorMessage, setErrorMessage] = useState(null)
   const [user, setUser] = useState(null)
-  const [title, setTitle] = useState(null)
-  const [author, setAuthor] = useState(null)
-  const [url, setUrl] = useState(null)
 
   useEffect(() => {
     if(user)
     {
-
-      //const header = {headers: {Authorization: `Bearer ${user.token.toString()}`}}
-      //console.log('bearer', header)
     blogService.setToken(user.token)
     blogService.getAll()
       .then(blogs => {
-        blogs = blogs.filter(b => b.user.username === user.username)
+       // blogs = blogs.filter(b => b.user.username === user.username)
+        blogs = blogs.sort((a,b)=>{return b.likes - a.likes})
         setBlogs( blogs )
       }
       
@@ -38,8 +34,7 @@ const App = () => {
     }
   }, [])
 
-  const addBlog= (event) => {
-    event.preventDefault()
+  const addBlog= ({title, author, url}) => {
     if(!(title.trim()=="")
     && !(author.trim()=="")
     && !(url.trim()=="")) {
@@ -57,9 +52,6 @@ const App = () => {
         setTimeout(() => {
           setErrorMessage(null)
         }, 5000)
-        setTitle('')
-        setAuthor('')
-        setUrl('')
       })
     }
     else {
@@ -68,9 +60,49 @@ const App = () => {
     
   }
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
-    
+  const putLike = async ({blogId,likes,author,title,url}) => {
+    const newObject = {
+      user:user.id,
+      likes:likes, 
+      author:author,
+      title:title,
+      url:url,
+    } 
+    blogService.setToken(user.token)
+     const request = await blogService
+                            .updateContent(
+                              blogId,
+                              newObject,
+                            )
+    console.log(request)
+    let modBlog = blogs.filter(b => b.id !==request.id)
+    modBlog = modBlog.concat(request)
+    modBlog = modBlog.sort((a,b)=>{return b.likes - a.likes})
+    console.log('rearranged blogs', modBlog)
+    setBlogs(modBlog) 
+
+  }
+
+  const deleteBlog = async({blogId}) => {
+    const thisBlog = blogs.find(b => b.id === blogId)
+    if(window.confirm(`Remove blog ${thisBlog.title} by ${thisBlog.author}`)) 
+    {blogService.setToken(user.token)
+    const response = await blogService
+                      .deleteItem(blogId)
+    let modBlog = blogs.filter(b => b.id !==blogId)
+    setBlogs(modBlog)}
+  }
+
+  const checkUserBlogs =  ({blogId}) => {
+        console.log('blogId',blogId)
+        let usersBlogs = blogs.filter(b=> b.user.username ===user.username)
+        usersBlogs = usersBlogs.map(b=>b.id ===blogId)
+        console.log('userBlogs',usersBlogs)
+        const disp = usersBlogs.includes(true)? true : false
+        return disp
+  }
+
+  const handleLogin = async ({username, password}) => {
     try {
       const user = await loginService.login({
         username, password,
@@ -80,8 +112,6 @@ const App = () => {
       )
       blogService.setToken(user.token)
       setUser(user)
-      setUsername('')
-      setPassword('')
     }
     catch (exception) {
       setErrorMessage('wrong credentials')
@@ -97,61 +127,20 @@ const App = () => {
     setUser(null)
   }
 
-  const loginForm = () => (
-    <form onSubmit={handleLogin}>
-    <div>
-      username
-        <input
-        type="text"
-        value={username}
-        name="Username"
-        onChange={({ target }) => setUsername(target.value)}
+  const loginForm = () => {
+
+    return (
+      <Togglable buttonLabel='Log in'>
+      <LoginForm handleLogin={handleLogin}
       />
-    </div>
-    <div>
-      password
-        <input
-        type="password"
-        value={password}
-        name="Password"
-        onChange={({ target }) => setPassword(target.value)}
-      />
-    </div>
-    <button type="submit">login</button>
-  </form>
-  )
+      </Togglable>
+    )
+}
 
    const blogsForm = () => (
-    <form onSubmit={addBlog}>
-    <div>
-      title:
-        <input
-        type="text"
-        value={title}
-        name="Title"
-        onChange={({ target }) => setTitle(target.value)}
-      />
-    </div>
-    <div>
-      author:
-        <input
-        type="text"
-        value={author}
-        name="Author"
-        onChange={({ target }) => setAuthor(target.value)}
-      />
-    </div>
-    <div>
-      url:
-        <input
-        type="text"
-        value={url}
-        name="Url"
-        onChange={({ target }) => setUrl(target.value)}
-      />
-    </div>
-    <button type="submit">create</button>
-  </form>
+     <Togglable buttonLabel='create new blog'>
+     <BlogForm addBlog={addBlog}/>
+    </Togglable>
   ) 
 
   return (
@@ -161,10 +150,13 @@ const App = () => {
       {user === null ?
       <h2>Login</h2>:
       <p>{user.name} logged in <button onClick={handleLogout}>logout</button>
-      <h2>create new</h2>
-      {blogsForm()}
+
+      <p>{blogsForm()}</p>
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} blog={blog} 
+        increaseLike={putLike}
+        removeBlog={deleteBlog} 
+        checkUserBlogs={checkUserBlogs}/>
       )}</p>
       }
       {user === null && loginForm()}
